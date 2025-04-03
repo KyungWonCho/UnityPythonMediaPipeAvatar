@@ -51,6 +51,7 @@ public class CalibrationTimer : MonoBehaviour
     }
     private IEnumerator Timer()
     {
+        /// Press C -> calibration start (T-pose)
         int t = timer;
         while (t > 0)
         {

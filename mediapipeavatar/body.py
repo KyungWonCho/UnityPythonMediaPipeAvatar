@@ -95,12 +95,14 @@ class BodyThread(threading.Thread):
                 # Set up data for relay
                 self.data = ""
                 i = 0
+                ### Send the pose landmarks to Unity
                 if results.pose_world_landmarks:
                     hand_world_landmarks = results.pose_world_landmarks
                     for i in range(0,33):
                         self.data += "{}|{}|{}|{}\n".format(i,hand_world_landmarks.landmark[i].x,hand_world_landmarks.landmark[i].y,hand_world_landmarks.landmark[i].z)
 
                 self.send_data(self.data)
+                ### Send the pose landmarks to Unity
                     
         self.pipe.close()
         capture.cap.release()
@@ -131,9 +133,11 @@ class BodyThread(threading.Thread):
 
             if self.pipe != None:
                 try:     
+                    ### Send the data to Unity via pipe
                     s = self.data.encode('utf-8') 
                     self.pipe.write(struct.pack('I', len(s)) + s)   
                     self.pipe.seek(0)    
+                    ### Send the data to Unity via pipe
                 except Exception as ex:  
                     print("Failed to write to pipe. Is the unity project open?")
                     self.pipe= None

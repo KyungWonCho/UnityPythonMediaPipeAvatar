@@ -57,10 +57,12 @@ public class PipeServer : MonoBehaviour
     {
         System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
 
+        /// Create the body object.
         body = new Body(bodyParent,landmarkPrefab,linePrefab,landmarkScale,enableHead?headPrefab:null);
+        /// Virtual transforms which are not provided by mediapipe pose, but are required for avatars.
         virtualNeck = new GameObject("VirtualNeck").transform;
         virtualHip = new GameObject("VirtualHip").transform;
-
+        /// Start `Run` thread.
         Thread t = new Thread(new ThreadStart(Run));
         t.Start();
     }
@@ -83,10 +85,12 @@ public class PipeServer : MonoBehaviour
         Vector3 offset = Vector3.zero;
         for (int i = 0; i < LANDMARK_COUNT; ++i)
         {
+            /// Update the local position of the landmark instances by offset.
             Vector3 p = b.localPositionTargets[i]-offset;
             b.instances[i].transform.localPosition=Vector3.MoveTowards(b.instances[i].transform.localPosition, p, Time.deltaTime * maxSpeed);
         }
 
+        /// Update virtual bones.
         virtualNeck.transform.position = (b.instances[(int)Landmark.RIGHT_SHOULDER].transform.position + b.instances[(int)Landmark.LEFT_SHOULDER].transform.position) / 2f;
         virtualHip.transform.position = (b.instances[(int)Landmark.RIGHT_HIP].transform.position + b.instances[(int)Landmark.LEFT_HIP].transform.position) / 2f;
 
@@ -114,6 +118,7 @@ public class PipeServer : MonoBehaviour
         }
         else
         {
+            /// Open the UDP socket.
             server = new ServerUDP(host, port);
             server.Connect();
             server.StartListeningAsync();
@@ -135,6 +140,7 @@ public class PipeServer : MonoBehaviour
                 }
                 else
                 {
+                    /// Read the message from the UDP socket.
                     if(server.HasMessage())
                         str = server.GetMessage();
                     len = str.Length;
@@ -149,6 +155,7 @@ public class PipeServer : MonoBehaviour
                     if (s.Length < 4) continue;
                     int i;
                     if (!int.TryParse(s[0], out i)) continue;
+                    /// Parse the landmark 3d position to `h`.
                     h.positionsBuffer[i].value += new Vector3(float.Parse(s[1]), float.Parse(s[2]), float.Parse(s[3]));
                     h.positionsBuffer[i].accumulatedValuesCount += 1;
                     h.active = true;
@@ -206,6 +213,7 @@ public class PipeServer : MonoBehaviour
             this.parent = parent;
             for (int i = 0; i < instances.Length; ++i)
             {
+                /// Create the landmark instances.
                 instances[i] = Instantiate(landmarkPrefab);// GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 instances[i].transform.localScale = Vector3.one * s;
                 instances[i].transform.parent = parent;
@@ -213,6 +221,7 @@ public class PipeServer : MonoBehaviour
             }
             for (int i = 0; i < lines.Length; ++i)
             {
+                /// Create the line connecting the landmarks.
                 lines[i] = Instantiate(linePrefab).GetComponent<LineRenderer>();
                 lines[i].transform.parent = parent;
             }
@@ -228,6 +237,7 @@ public class PipeServer : MonoBehaviour
         }
         public void UpdateLines()
         {
+            /// Total lines = 11. I might think these lines mean Mediapipe detection results.
             lines[0].positionCount = 4;
             lines[0].SetPosition(0, Position((Landmark)32));
             lines[0].SetPosition(1, Position((Landmark)30));
